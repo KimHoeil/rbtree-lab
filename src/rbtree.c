@@ -200,24 +200,156 @@ node_t *rbtree_insert(rbtree *t, const key_t key)
 node_t *rbtree_find(const rbtree *t, const key_t key)
 {
   // TODO: implement find
-  return t->root;
+  // rbtree내에 해당 key가 있으면 해당 노드 반환
+  // 해당하는 노드가 없으면 null 반환
+  node_t *cur = t->root;
+
+  // cur가 nil이 아니고 key가 아니면 계속 탐색 진행
+  while (cur != t->nil && cur->key != key)
+  {
+    if (cur->key > key) // cur.key가 key보다 크면 왼쪽 서브트리로 탐색진행
+      cur = cur->left;
+
+    else if (cur->key < key) // cur.key가 key보다 작으면 오른쪽 서브트리로 탐색진행
+      cur = cur->right;
+  }
+
+  if (cur == t->nil)
+    return NULL;
+
+  return cur;
+}
+
+int min_search(node_t *node, const rbtree *t)
+{
+  if (node == t->nil)
+    return 1000000000;
+
+  int left = 0;
+  int right = 0;
+
+  left = min_search(node->left, t);
+  right = min_search(node->right, t);
+
+  // 현재 노드의 값과 왼쪽, 오른쪽 서브트리의 최소값을 비교
+  if (node->key < left)
+  {
+    if (node->key < right)
+      return node->key; // 현재 노드의 값이 가장 작음
+    else
+      return right; // 오른쪽 서브트리의 값이 가장 작음
+  }
+  else
+  {
+    if (left < right)
+      return left; // 왼쪽 서브트리의 값이 가장 작음
+
+    else
+      return right; // 오른쪽 서브트리의 값이 가장 작음
+  }
 }
 
 node_t *rbtree_min(const rbtree *t)
 {
   // TODO: implement find
-  return t->root;
+  // rbtree 중 최소 값을 가진 node pointer 반환
+  int minKey = 0;
+  node_t *minNode;
+  // minKey = min_search(t->root, t);
+  // minNode = rbtree_find(t, minKey);
+
+  node_t *cur = t->root;
+
+  // 찾는 노드가 nil노드가 아니고 루트가 아닌경우
+  while (cur->parent != NULL && cur != t->nil)
+  {
+    cur = cur->left;
+  }
+
+  return cur;
+}
+
+int max_search(const rbtree *t, node_t *node)
+{
+  if (node == t->nil)
+    return 0;
+
+  int left = 0;
+  int right = 0;
+
+  left = max_search(t, node->left);
+  right = max_search(t, node->right);
+
+  // 현재 노드의 값과 왼쪽, 오른쪽 서브트리의 최대값을 비교
+  if (node->key > left)
+  {
+    if (node->key > right)
+      return node->key; // 현재 노드의 값이 가장 큼
+    else
+      return right; // 오른쪽 서브트리의 값이 가장 큼
+  }
+  else
+  {
+    if (left > right)
+      return left; // 왼쪽 서브트리의 값이 가장 큼
+
+    else
+      return right; // 오른쪽 서브트리의 값이 가장 큼
+  }
 }
 
 node_t *rbtree_max(const rbtree *t)
 {
   // TODO: implement find
-  return t->root;
+  // 최댓값을 가진 node pointer 반환
+  int maxKey = 0;
+  node_t *maxNode;
+  maxKey = max_search(t, t->root);
+  maxNode = rbtree_find(t, maxKey);
+  return maxNode;
+}
+
+void rbtree_transplant(rbtree *t, node_t *u, node_t *v)
+{
+
+  // 타겟 노드가 루트 노드인 경우
+  if (u->parent == t->nil)
+    t->root = v;
+  // 타겟 노드가 왼쪽 자식인 경우
+  else if (u == u->parent->left)
+  {
+    u->parent->left = v;
+  }
+  // 타겟 노드가 오른쪽 자식인 경우
+  else
+    u->parent->right = v;
+  v->parent = u->parent;
 }
 
 int rbtree_erase(rbtree *t, node_t *p)
 {
   // TODO: implement erase
+  node_t *y = p;
+  node_t *x;
+  int y_original_color = y->color;
+
+  // 타겟 노드가 오른쪽 자식만 있는 경우
+  if (p->left == t->nil)
+  {
+    x = p->right;
+    rbtree_transplant(t, p, p->right);
+  }
+  // 타겟 노드가 왼쪽 자식만 있는 경우
+  else if (p->right == t->nil)
+  {
+    x = p->left;
+    rbtree_transplant(t, p, p->left);
+  }
+  else
+  {
+    y = rbtree_min();
+  }
+
   return 0;
 }
 
@@ -227,7 +359,7 @@ int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n)
   return 0;
 }
 
-// 트리를 출력하는 함수
+// // 트리를 출력하는 함수
 // void print_rbtree(rbtree *t, node_t *node, int space)
 // {
 //   if (node == t->nil)
