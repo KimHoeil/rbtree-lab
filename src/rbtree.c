@@ -298,11 +298,14 @@ void rbtree_transplant(rbtree *t, node_t *u, node_t *v)
 
 node_t *rbtree_minimum(rbtree *t, node_t *node)
 {
+  node_t *successor = node;
 
-  if (node->left != t->nil) // 후임자가 있으면 설정
-    return node->left;
+  while (successor->left != t->nil)
+  {
+    successor = successor->left;
+  }
 
-  return node; // 후임자가 없으면 자기 자신이 후임자
+  return successor;
 }
 
 void rbtree_delete_fixup(rbtree *t, node_t *x)
